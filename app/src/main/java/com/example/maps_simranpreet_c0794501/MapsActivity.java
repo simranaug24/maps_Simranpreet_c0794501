@@ -93,7 +93,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                Toast.makeText(MapsActivity.this, "", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapsActivity.this, returnAdd(marker.getPosition()), Toast.LENGTH_SHORT).show();
             }
         });
         mMap.setOnPolygonClickListener(this);
