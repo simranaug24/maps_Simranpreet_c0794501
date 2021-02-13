@@ -5,8 +5,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -25,15 +27,31 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+
+import java.util.ArrayList;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
 
     private GoogleMap mMap;
 
     private static final int REQUEST_CODE = 1;
     private Marker homeMarker;
     private Marker destMarker;
+
+    Marker A;
+    Marker B;
+    Marker C;
+    Marker D;
+    LatLng usrloc;
+
+    ArrayList<Marker> markers = new ArrayList<>();
+    Polygon poly ;
+    public static final int SIDES = 4;
+
+    int count = 1;
 
     LocationManager locationManager;
     LocationListener locationListener;
@@ -62,6 +80,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
 
+        mMap.setOnMapLongClickListener(this);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
@@ -77,17 +96,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         else
             startUpdateLocation();
 
+        mMap.setOnMapClickListener(this);
     }
 
     private void startUpdateLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, locationListener);
@@ -101,17 +114,115 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private boolean isGrantedPermission()
     {
-        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED;
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void setHomeMarker(Location location)
     {
-        LatLng usrloc = new LatLng(location.getLatitude(),location.getLongitude());
+         usrloc = new LatLng(location.getLatitude(),location.getLongitude());
         MarkerOptions options = new MarkerOptions().position(usrloc)
                 .title("You are here")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
                 .snippet("your location");
         homeMarker = mMap.addMarker(options);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(usrloc,15));
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        if( count ==1)
+        {
+            setMarkerA(latLng);
+        }
+        if (count == 2)
+        {
+            setMarkerB(latLng);
+        }
+        if(count == 3)
+        {
+            setMarkerC(latLng);
+        }
+        if(count == 4)
+        {
+            setMarkerD(latLng);
+            drawShape();
+        }
+    }
+
+    private void drawShape() {
+        PolygonOptions options = new PolygonOptions().fillColor(0x3500FF00).strokeColor(Color.RED).strokeWidth(4);
+        for (int i = 0;i<SIDES;i++)
+        {
+            options.add(markers.get(i).getPosition());
+        }
+        poly = mMap.addPolygon(options);
+    }
+
+
+    private void setMarkerD(LatLng latLng) {
+        MarkerOptions options = new MarkerOptions();
+        options.position(latLng).title("City D");
+        float result[] = new float[10];
+        Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
+        options.snippet("Distance = "+ result[0]);
+
+        D = mMap.addMarker(options);
+        markers.add(D);
+        count += 1;
+    }
+
+    private void setMarkerC(LatLng latLng) {
+        MarkerOptions options = new MarkerOptions();
+        options.position(latLng).title("City C");
+        float result[] = new float[10];
+        Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
+        options.snippet("Distance = "+ result[0]);
+
+        C = mMap.addMarker(options);
+        markers.add(C);
+        count += 1;
+    }
+
+    private void setMarkerB(LatLng latLng) {
+        MarkerOptions options = new MarkerOptions();
+        options.position(latLng).title("City B");
+        float result[] = new float[10];
+        Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
+        options.snippet("Distance = "+ result[0]);
+
+        B = mMap.addMarker(options);
+        markers.add(B);
+        count += 1;
+    }
+
+    private void setMarkerA(LatLng latLng) {
+        MarkerOptions options = new MarkerOptions();
+        options.position(latLng).title("City A");
+        float result[] = new float[10];
+        Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
+        options.snippet("Distance = "+ result[0]);
+
+        A = mMap.addMarker(options);
+        markers.add(A);
+        count += 1;
+
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng)
+    {
+        clearMarkers();
+
+    }
+
+    private void clearMarkers() {
+        for(int i = 0 ; i< markers.size();i++)
+        {
+            markers.get(i).remove();
+        }
+        count = 1;
+        markers.clear();
+        poly.remove();
+        poly = null ;
     }
 }
