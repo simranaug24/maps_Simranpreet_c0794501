@@ -9,6 +9,8 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -32,9 +34,11 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnPolygonClickListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnPolygonClickListener {
 
     private GoogleMap mMap;
 
@@ -86,6 +90,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                Toast.makeText(MapsActivity.this, "", Toast.LENGTH_SHORT).show();
+            }
+        });
         mMap.setOnPolygonClickListener(this);
 
 
@@ -105,7 +115,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         else
             startUpdateLocation();
 
-        mMap.setOnMapClickListener(this);
+       // mMap.setOnMapClickListener(this);
+    }
+
+    private String returnAdd(LatLng latLng)
+    {
+        String address = " ";
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addressList = geocoder.getFromLocation(latLng.latitude,latLng.longitude,1);
+            if (addressList != null && addressList.size()>0)
+            {
+                address = "";
+
+                if (addressList.get(0).getThoroughfare() != null)
+                    address += addressList.get(0).getThoroughfare() + "\n";
+                if (addressList.get(0).getLocality()!= null)
+                    address += addressList.get(0).getLocality() + " ";
+                if (addressList.get(0).getPostalCode() != null)
+                    address += addressList.get(0).getPostalCode() + " ";
+                if (addressList.get(0).getAdminArea() != null)
+                    address += addressList.get(0).getAdminArea();
+
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        return address;
     }
 
     private void startUpdateLocation() {
@@ -131,35 +170,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          usrloc = new LatLng(location.getLatitude(),location.getLongitude());
         MarkerOptions options = new MarkerOptions().position(usrloc)
                 .title("You are here")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.icon))
                 .snippet("your location");
         homeMarker = mMap.addMarker(options);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(usrloc,15));
     }
 
-    @Override
-    public void onMapClick(LatLng latLng) {
-        if( count ==1)
-        {
-            setMarkerA(latLng);
-        }
-       else if (count == 2)
-        {
-            setMarkerB(latLng);
-        }
-       else if(count == 3)
-        {
-            setMarkerC(latLng);
-        }
-       else if(count == 4)
-        {
-            setMarkerD(latLng);
-            drawShape();
-        }
-    }
 
     private void drawShape() {
-        PolygonOptions options = new PolygonOptions().fillColor(0x3500FF00).strokeColor(Color.RED).strokeWidth(4);
+        PolygonOptions options = new PolygonOptions().fillColor(0x3500FF00).strokeColor(Color.RED).strokeWidth(4).clickable(true);
         for (int i = 0;i<SIDES;i++)
         {
             options.add(markers.get(i).getPosition());
@@ -183,7 +202,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setMarkerD(LatLng latLng) {
         MarkerOptions options = new MarkerOptions();
-        options.position(latLng).title("City D");
+        options.position(latLng).title("City D").icon(BitmapDescriptorFactory.fromResource(R.drawable.d));
         float result[] = new float[10];
         Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
         options.snippet("Distance = "+ result[0]);
@@ -196,7 +215,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setMarkerC(LatLng latLng) {
         MarkerOptions options = new MarkerOptions();
-        options.position(latLng).title("City C");
+        options.position(latLng).title("City C").icon(BitmapDescriptorFactory.fromResource(R.drawable.c));
         float result[] = new float[10];
         Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
         options.snippet("Distance = "+ result[0]);
@@ -209,7 +228,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setMarkerB(LatLng latLng) {
         MarkerOptions options = new MarkerOptions();
-        options.position(latLng).title("City B");
+        options.position(latLng).title("City B").icon(BitmapDescriptorFactory.fromResource(R.drawable.b));
         float result[] = new float[10];
         Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
         options.snippet("Distance = "+ result[0]);
@@ -222,7 +241,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setMarkerA(LatLng latLng) {
         MarkerOptions options = new MarkerOptions();
-        options.position(latLng).title("City A");
+        options.position(latLng).title("City A").icon(BitmapDescriptorFactory.fromResource(R.drawable.a));
         float result[] = new float[10];
         Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
         options.snippet("Distance = "+ result[0]);
@@ -230,6 +249,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         first = latLng;
         A = mMap.addMarker(options);
         markers.add(A);
+      //  options.draggable(true);
         count += 1;
 
     }
@@ -237,8 +257,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapLongClick(LatLng latLng)
     {
-        if (markers.size()> 0 )
-        clearMarkers();
+
+        if( count ==1)
+        {
+            setMarkerA(latLng);
+        }
+        else if (count == 2)
+        {
+            setMarkerB(latLng);
+        }
+        else if(count == 3)
+        {
+            setMarkerC(latLng);
+        }
+        else if(count == 4)
+        {
+            setMarkerD(latLng);
+            drawShape();
+        }
+        else if (count == 5)
+        {
+            clearMarkers();
+        }
 
     }
 
