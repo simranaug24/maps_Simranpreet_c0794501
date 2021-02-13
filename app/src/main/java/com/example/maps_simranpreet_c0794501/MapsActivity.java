@@ -13,6 +13,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -33,7 +34,7 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import java.util.ArrayList;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnPolygonClickListener {
 
     private GoogleMap mMap;
 
@@ -46,6 +47,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker C;
     Marker D;
     LatLng usrloc;
+    LatLng first;
+    LatLng second;
+    LatLng third;
+    LatLng forth;
+
+    float totaldist = 0;
 
     ArrayList<Marker> markers = new ArrayList<>();
     Polygon poly ;
@@ -78,6 +85,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        mMap.setOnPolygonClickListener(this);
 
 
         mMap.setOnMapLongClickListener(this);
@@ -134,15 +143,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             setMarkerA(latLng);
         }
-        if (count == 2)
+       else if (count == 2)
         {
             setMarkerB(latLng);
         }
-        if(count == 3)
+       else if(count == 3)
         {
             setMarkerC(latLng);
         }
-        if(count == 4)
+       else if(count == 4)
         {
             setMarkerD(latLng);
             drawShape();
@@ -155,7 +164,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             options.add(markers.get(i).getPosition());
         }
+
         poly = mMap.addPolygon(options);
+        float results[] = new float[10];
+        float results1[] = new float[10];
+        float results2[] = new float[10];
+        float results3[] = new float[10];
+
+
+        Location.distanceBetween(first.latitude, first.longitude, second.latitude, second.longitude, results);
+        Location.distanceBetween(second.latitude, second.longitude, third.latitude, third.longitude, results1);
+        Location.distanceBetween(third.latitude, third.longitude, forth.latitude, forth.longitude, results2);
+        Location.distanceBetween(forth.latitude, forth.longitude, first.latitude, first.longitude, results3);
+
+        totaldist = results[0] + results1[0] + results2[0] + results3[0];
     }
 
 
@@ -166,6 +188,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
         options.snippet("Distance = "+ result[0]);
 
+        forth = latLng;
         D = mMap.addMarker(options);
         markers.add(D);
         count += 1;
@@ -178,6 +201,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
         options.snippet("Distance = "+ result[0]);
 
+        third = latLng;
         C = mMap.addMarker(options);
         markers.add(C);
         count += 1;
@@ -190,6 +214,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
         options.snippet("Distance = "+ result[0]);
 
+        second = latLng;
         B = mMap.addMarker(options);
         markers.add(B);
         count += 1;
@@ -202,6 +227,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Location.distanceBetween(usrloc.latitude,usrloc.longitude,latLng.latitude,latLng.longitude, result);
         options.snippet("Distance = "+ result[0]);
 
+        first = latLng;
         A = mMap.addMarker(options);
         markers.add(A);
         count += 1;
@@ -211,6 +237,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapLongClick(LatLng latLng)
     {
+        if (markers.size()> 0 )
         clearMarkers();
 
     }
@@ -224,5 +251,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         markers.clear();
         poly.remove();
         poly = null ;
+    }
+
+    @Override
+    public void onPolygonClick(Polygon polygon)
+    {
+
+        Toast.makeText(this, "Distance of all 4 cities  ="+totaldist, Toast.LENGTH_SHORT).show();
+
     }
 }
